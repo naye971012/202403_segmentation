@@ -1,0 +1,10 @@
+data/test_img
+data/train_img
+data/train_mask
+data/*.csv
+
+example
+__pycache__
+Segformer_baseline
+wandb
+*.ipynb
