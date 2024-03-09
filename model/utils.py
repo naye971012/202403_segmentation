@@ -5,6 +5,7 @@ import evaluate
 import random
 import rasterio
 from PIL import Image
+from transformers import AutoImageProcessor, Mask2FormerForUniversalSegmentation, Mask2FormerImageProcessor
 
 MAX_PIXEL_VALUE = 65535
 
@@ -33,7 +34,6 @@ def set_seed(seed=42):
     torch.cuda.manual_seed(seed)  
     torch.cuda.manual_seed_all(seed) 
     torch.backends.cudnn.deterministic = True 
-
 
 def compute_metrics(eval_pred):
     with torch.no_grad():

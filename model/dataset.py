@@ -5,6 +5,7 @@ import os
 from sklearn.model_selection import train_test_split
 from transformers import AutoImageProcessor
 import numpy as np
+import albumentations as A
 
 from utils import get_img_762bands, get_mask_arr
 
@@ -40,6 +41,12 @@ class Traindataset(Dataset):
         self.csv = csv
         self.is_valid = is_valid
         
+        self.transform = A.Compose([
+            A.RandomRotate90(p=0.25),
+            A.HorizontalFlip(p=0.25),
+            A.VerticalFlip(p=0.25)
+        ])
+        
     def __len__(self):
         return len(self.csv)
     
@@ -55,7 +62,9 @@ class Traindataset(Dataset):
         mask_nparray = get_mask_arr(mask_path).reshape(256,256) # [256,256]
         
         if not self.is_valid:
-            pass
+            transformed = self.transform(image=image_nparray, mask = mask_nparray)
+            image_nparray = transformed['image']
+            mask_nparray = transformed['mask']
             # need to transform
         
         output = {

@@ -1,16 +1,15 @@
 from transformers import AutoImageProcessor
 from transformers import AutoModelForSemanticSegmentation, TrainingArguments, Trainer, SegformerImageProcessor, SegformerForSemanticSegmentation
-from transformers import AutoImageProcessor, Mask2FormerForUniversalSegmentation
+from transformers import AutoImageProcessor, Mask2FormerForUniversalSegmentation, Mask2FormerImageProcessor
 
 import argparse
 import torch
 import numpy as np
 import wandb
 import warnings
-from trainer import CustomTrainer
 warnings.filterwarnings("ignore")
 
-
+from trainer import *
 from dataset import get_dataset
 from utils import compute_metrics, set_seed
 
@@ -27,7 +26,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Arguments for training")
 
     # Required arguments
-    parser.add_argument("--output_dir", type=str, default="./Segformer_baseline",
+    parser.add_argument("--output_dir", type=str, default="./Segformer_FocalDice-ratio1",
                         help="Directory where the model checkpoints and outputs will be saved")
     parser.add_argument("--model_name", type=str, default="nvidia/MiT-b5",
                         help="baseline model name")    
@@ -68,6 +67,7 @@ def main():
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         learning_rate=1e-4,
+        #warmup_steps=1000,
         num_train_epochs=10,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
@@ -80,13 +80,14 @@ def main():
         gradient_accumulation_steps=2,
         eval_accumulation_steps=4,
         remove_unused_columns=False,
-        dataloader_num_workers=10,
+        dataloader_num_workers=4,
         dataloader_drop_last=True,
     )
 
-    wandb.init(project="2024-SPARK-6")
+    wandb.init(project="2024-SPARK-6",
+               name="Baseline-Dice+Focal-Ratio-1")
 
-    trainer = Trainer(
+    trainer = FocalDiceTrainer(
         data_collator=collate_fn,
         model=model,
         args=training_args,
@@ -118,7 +119,7 @@ def collate_fn(example_batch):
                                                 do_normalize=True,
                                                 do_rescale=False,
                                                 do_resize=False,
-                                                do_reduce_labels=False, #True
+                                                do_reduce_labels=False, 
                                                 return_tensors="pt")
         #for testing process
         else:
@@ -128,7 +129,7 @@ def collate_fn(example_batch):
                                                 do_normalize=True,
                                                 do_rescale=False,
                                                 do_resize=False,
-                                                do_reduce_labels=False, #True
+                                                do_reduce_labels=False, 
                                                 return_tensors="pt")
         return inputs
 
