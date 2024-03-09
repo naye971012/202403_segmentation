@@ -35,7 +35,6 @@ def set_seed(seed=42):
     torch.backends.cudnn.deterministic = True 
 
 
-metric = evaluate.load("mean_iou")
 def compute_metrics(eval_pred):
     with torch.no_grad():
         logits, labels = eval_pred
@@ -57,18 +56,21 @@ def compute_metrics(eval_pred):
             
             pred_img.save(f"example/pred_image_{i}.png")
             label_img.save(f"example/label_image_{i}.png")
-            
-        print()
-        print("computing...")
-        metrics = metric.compute(
-            predictions=pred_labels,
-            references=labels,
-            num_labels=2,
-            ignore_index=255,
-            reduce_labels=True,
-        )
-        
-        for key, value in metrics.items():
-            if isinstance(value, np.ndarray):
-                metrics[key] = value.tolist()
-        return metrics
+
+
+        TP = np.sum(np.logical_and(pred_labels == 255, labels == 255))
+        FP = np.sum(np.logical_and(pred_labels == 255, labels == 0))
+        FN = np.sum(np.logical_and(pred_labels == 0, labels == 255))
+
+        # IOU 계산
+        iou = TP / (TP + FP + FN)
+
+        # Precision 계산
+        precision = TP / (TP + FP)
+
+        # Recall 계산
+        recall = TP / (TP + FN)
+
+        return  {"IOU": iou,
+                 "Precision": precision,
+                 "Recall": recall}

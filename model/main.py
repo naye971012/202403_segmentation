@@ -15,11 +15,11 @@ from dataset import get_dataset
 from utils import compute_metrics, set_seed
 
 id2label = {
-    0: "background",
+    0: "fire",
     #1: "fire"
 }
 label2id = {
-    "background": 0,
+    "fire": 0,
     #"fire":1
 }
 
@@ -29,13 +29,13 @@ def get_args():
     # Required arguments
     parser.add_argument("--output_dir", type=str, default="./Segformer_baseline",
                         help="Directory where the model checkpoints and outputs will be saved")
-    parser.add_argument("--model_name", type=str, default="nvidia/segformer-b0-finetuned-ade-512-512",
+    parser.add_argument("--model_name", type=str, default="nvidia/MiT-b5",
                         help="baseline model name")    
 
     parser.add_argument("--data_path", type=str, default="../data",
                         help="data folder path")    
     
-    parser.add_argument("--validation_ratio", type=float, default=0.005,
+    parser.add_argument("--validation_ratio", type=float, default=0.1,
                         help="train test split ratio")    
     parser.add_argument("--seed", type=int, default=42,
                         help="seed for reproduce")    
@@ -74,9 +74,9 @@ def main():
         save_total_limit=2,
         evaluation_strategy="steps",
         save_strategy="steps",
-        save_steps=2000,
-        eval_steps=2000,
-        logging_steps=50,
+        save_steps=1000,
+        eval_steps=500,
+        logging_steps=30,
         gradient_accumulation_steps=2,
         eval_accumulation_steps=4,
         remove_unused_columns=False,
@@ -84,7 +84,7 @@ def main():
         dataloader_drop_last=True,
     )
 
-    #wandb.init(project="2024-SPARK-6")
+    wandb.init(project="2024-SPARK-6")
 
     trainer = Trainer(
         data_collator=collate_fn,

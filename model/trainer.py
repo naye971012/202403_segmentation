@@ -22,9 +22,7 @@ class CustomTrainer(Trainer):
         outputs = model(**inputs)  # 모델 호출
         logits = outputs.logits
         
-        labels[labels==255]=0
-        logits = logits[:,1] #only check segmentation 1
-        
+        logits = logits.unsqueeze(1)
         labels = F.interpolate(labels.float().unsqueeze(1), size=(64,64), mode='bilinear', align_corners=False)
         
         # Dice Loss 계산
